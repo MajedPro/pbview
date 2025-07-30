@@ -1,5 +1,7 @@
 # PassiveBot Config Viewer
 
+**Live Tool**: [https://majedpro.github.io/pbview/](https://majedpro.github.io/pbview/)
+
 A comprehensive web-based viewer for PassiveBot trading configuration files. This tool provides an intuitive interface to analyze and visualize all aspects of your PassiveBot configurations.
 
 ![PassiveBot Config Viewer](https://img.shields.io/badge/PassiveBot-Config%20Viewer-00d4ff?style=for-the-badge)
