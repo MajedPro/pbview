@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<!--
+PassiveBot Config Viewer
+========================
+
+A comprehensive web-based viewer for PassiveBot trading configuration files.
+This tool provides an intuitive, dark-themed interface to analyze and visualize 
+all aspects of your PassiveBot configurations.
+
+Features:
+- 📊 Performance Analysis (ADG, Sharpe, Omega, Drawdown, etc.)
+- 🔧 Bot Configuration (20+ parameters per long/short side)
+- 📈 Backtest Configuration (flexible symbol handling)
+- ⚡ Live Trading Settings (execution parameters, risk controls)
+- 🎯 Optimization Analysis (bounds, limits, scoring methods)
+- 🎨 Dark Theme with responsive design
+- 🔄 Drag & Drop functionality with global reload support
+
+Author: PassiveBot Community
+Version: 1.0.0
+License: Public Domain
+Repository: https://github.com/msei99/pbconfigs
+Documentation: See README.md
+
+Usage:
+1. Open this HTML file in any modern web browser
+2. Drag and drop your config.json file onto the page
+3. Explore all sections of your configuration data
+
+Browser Compatibility:
+- Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
+- JavaScript must be enabled
+- No installation required - runs entirely client-side
+
+Privacy & Security:
+- 100% client-side processing
+- No data sent to any server
+- Works offline after initial load
+- Self-contained with embedded resources
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Comprehensive web-based viewer for PassiveBot trading configuration files. Analyze performance metrics, bot settings, and optimization parameters.">
+    <meta name="keywords" content="PassiveBot, trading bot, configuration, analysis, performance metrics, crypto trading">
+    <meta name="author" content="PassiveBot Community">
+    <meta name="version" content="1.0.0">
+    <meta name="repository" content="https://github.com/msei99/pbconfigs">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="PassiveBot Config Viewer">
+    <meta property="og:description" content="Comprehensive web-based viewer for PassiveBot trading configuration files. Analyze performance metrics, bot settings, and optimization parameters.">
+    <meta property="og:url" content="https://github.com/msei99/pbconfigs">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:title" content="PassiveBot Config Viewer">
+    <meta property="twitter:description" content="Comprehensive web-based viewer for PassiveBot trading configuration files.">
+    
+    <title>PassiveBot Config Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #111111;
+            border: 1px solid #222222;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-bottom: 1px solid #333333;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .header p {
+            opacity: 0.7;
+            font-size: 0.9rem;
+            color: #888888;
+        }
+
+        .drop-zone {
+            border: 2px dashed #333333;
+            border-radius: 8px;
+            padding: 40px 20px;
+            margin: 20px;
+            text-align: center;
+            background: #161616;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: #00d4ff;
+            background: #1a1f26;
+        }
+
+        .drop-zone-content {
+            color: #888888;
+        }
+
+        .drop-zone-content i {
+            font-size: 2.5rem;
+            color: #00d4ff;
+            margin-bottom: 16px;
+        }
+
+        .drop-zone-content h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .drop-zone-content p {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .drop-zone-content small {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .content {
+            padding: 20px;
+            display: none;
+        }
+
+        .section {
+            margin-bottom: 16px;
+            background: #161616;
+            border: 1px solid #222222;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #1a1a1a;
+            border-bottom: 1px solid #222222;
+            color: #ffffff;
+            padding: 14px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s ease;
+        }
+
+        .section-header:hover {
+            background: #222222;
+        }
+
+        .section-content {
+            padding: 18px;
+            background: #161616;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .metric-card {
+            background: #1a1a1a;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #222222;
+            transition: all 0.2s ease;
+        }
+
+        .metric-card:hover {
+            border-color: #333333;
+            background: #1e1e1e;
+        }
+
+        .metric-label {
+            font-weight: 500;
+            color: #888888;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        .metric-value.positive {
+            color: #00ff88;
+        }
+
+        .metric-value.negative {
+            color: #ff4757;
+        }
+
+        .coins-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .coin-tag {
+            background: #222222;
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid #333333;
+        }
+
+        .side-by-side {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .collapsible {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible.expanded {
+            max-height: 2000px;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s ease;
+            color: #888888;
+        }
+
+        .expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .progress-bar {
+            background: #222222;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+            height: 4px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.good { background: linear-gradient(90deg, #00ff88, #00cc6a); }
+        .progress-fill.medium { background: linear-gradient(90deg, #ffa726, #ff8f00); }
+        .progress-fill.bad { background: linear-gradient(90deg, #ff4757, #ff3742); }
+        
+        .metric-value.good { color: #00ff88; }
+        .metric-value.medium { color: #ffa726; }
+        .metric-value.bad { color: #ff4757; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .info-item {
+            background: #1a1a1a;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #222222;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #888888;
+            margin-bottom: 4px;
+            font-size: 0.8rem;
+        }
+
+        .info-value {
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .reset-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border: 1px solid #ff3742;
+        }
+
+        .reset-btn:hover {
+            background: #ff3742;
+        }
+
+        @media (max-width: 768px) {
+            .side-by-side {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .drop-zone {
+                padding: 30px 15px;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #888888;
+        }
+
+        .spinner {
+            border: 3px solid #222222;
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        h4 {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 20px 0 12px 0;
+            border-bottom: 1px solid #222222;
+            padding-bottom: 8px;
+        }
+
+        h5 {
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .section-header i {
+            margin-right: 8px;
+            color: #00d4ff;
+        }
+
+        .drag-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 212, 255, 0.1);
+            border: 3px dashed #00d4ff;
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: #00d4ff;
+            font-weight: 600;
+            text-align: center;
+            pointer-events: none;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> PassiveBot Config Viewer</h1>
+            <p>Comprehensive analysis of your trading bot configurations</p>
+        </div>
+
+        <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" class="file-input" accept=".json">
+            <div class="drop-zone-content">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Drop your config.json file here</h3>
+                <p>or click to browse</p>
+                <small>Supports PassiveBot configuration files (.json)</small>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing configuration...</p>
+        </div>
+
+        <div class="content" id="content">
+            <!-- Content will be populated dynamically -->
+        </div>
+    </div>
+
+    <button class="reset-btn" id="resetBtn" style="display: none;">
+        <i class="fas fa-refresh"></i> Load New Config
+    </button>
+
+    <div class="drag-overlay" id="dragOverlay">
+        <div>
+            <i class="fas fa-file-upload"></i><br>
+            Drop config.json file to reload
+        </div>
+    </div>
+
+    <script>
+        /**
+         * PassiveBot Config Viewer
+         * ========================
+         * 
+         * Web-based configuration file analyzer for PassiveBot trading configurations.
+         * 
+         * @version 1.0.0
+         * @author PassiveBot Community
+         * @license Public Domain
+         * @repository https://github.com/msei99/pbconfigs
+         * 
+         * Main functionality:
+         * - File handling (drag & drop, click to upload)
+         * - JSON parsing and validation
+         * - Multi-format configuration support
+         * - Performance metrics visualization
+         * - Bot parameter analysis
+         * - Responsive UI with dark theme
+         */
+
+        // ===== DOM Elements =====
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const content = document.getElementById('content');
+        const loading = document.getElementById('loading');
+        const resetBtn = document.getElementById('resetBtn');
+        const dragOverlay = document.getElementById('dragOverlay');
+
+        // ===== Event Listeners Setup =====
+        
+        // Drop zone interactions
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', handleDragOver);
+        dropZone.addEventListener('dragleave', handleDragLeave);
+        dropZone.addEventListener('drop', handleDrop);
+        
+        // File input and reset
+        fileInput.addEventListener('change', handleFileSelect);
+        resetBtn.addEventListener('click', resetViewer);
+
+        // ===== Global Drag & Drop Support =====
+        // Enables drag & drop functionality anywhere on the page when config is loaded
+        document.addEventListener('dragover', function(e) {
+            if (content.style.display === 'block') {
+                e.preventDefault();
+                dragOverlay.style.display = 'flex';
+            }
+        });
+
+        document.addEventListener('dragleave', function(e) {
+            if (e.clientX === 0 && e.clientY === 0) { // Only when actually leaving the window
+                dragOverlay.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('drop', function(e) {
+            if (content.style.display === 'block') {
+                e.preventDefault();
+                dragOverlay.style.display = 'none';
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    processFile(files[0], false); // Don't show loading animation for reloads
+                }
+            }
+        });
+
+        // ===== Drag & Drop Event Handlers =====
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0], true); // Show loading animation for initial load
+            }
+        }
+
+        // ===== File Processing Functions =====
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                processFile(files[0], true); // Show loading animation for file selection
+            }
+        }
+
+        function processFile(file, showLoadingAnimation = true) {
+            if (!file.name.endsWith('.json')) {
+                alert('Please select a JSON file');
+                return;
+            }
+
+            if (showLoadingAnimation) {
+                showLoading();
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const config = JSON.parse(e.target.result);
+                    const delay = showLoadingAnimation ? 1000 : 100; // Shorter delay for reloads
+                    setTimeout(() => {
+                        renderConfig(config);
+                        if (showLoadingAnimation) {
+                            hideLoading();
+                        }
+                        showContent();
+                    }, delay);
+                } catch (error) {
+                    alert('Error parsing JSON file: ' + error.message);
+                    if (showLoadingAnimation) {
+                        hideLoading();
+                    }
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ===== UI Control Functions =====
+
+        function showLoading() {
+            dropZone.style.display = 'none';
+            loading.style.display = 'block';
+        }
+
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+
+        function showContent() {
+            content.style.display = 'block';
+            resetBtn.style.display = 'block';
+        }
+
+        function resetViewer() {
+            dropZone.style.display = 'block';
+            content.style.display = 'none';
+            resetBtn.style.display = 'none';
+            fileInput.value = '';
+        }
+
+        // ===== Utility Functions =====
+
+        function formatNumber(value, decimals = 2, suffix = '') {
+            if (typeof value !== 'number' || value === null || value === undefined) return 'N/A';
+            return value.toLocaleString(undefined, { 
+                minimumFractionDigits: decimals, 
+                maximumFractionDigits: decimals 
+            }) + suffix;
+        }
+
+        function formatPercent(value, decimals = 2) {
+            if (typeof value !== 'number' || value === null || value === undefined) return 'N/A';
+            return formatNumber(value * 100, decimals, '%');
+        }
+
+        function getMetricClass(value, thresholds) {
+            if (value >= thresholds.good) return 'good';
+            if (value >= thresholds.medium) return 'medium';
+            return 'bad';
+        }
+
+        function createProgressBar(value, max, className = 'good') {
+            const percentage = Math.min((value / max) * 100, 100);
+            return `
+                <div class="progress-bar">
+                    <div class="progress-fill ${className}" style="width: ${percentage}%"></div>
+                </div>
+            `;
+        }
+
+        // ===== Main Rendering Functions =====
+
+        function renderConfig(config) {
+            content.innerHTML = `
+                ${renderAnalysisSection(config.analysis)}
+                ${renderBacktestSection(config.backtest)}
+                ${renderBotSection(config.bot)}
+                ${renderLiveSection(config.live)}
+                ${renderOptimizeSection(config.optimize)}
+                ${renderPbguiSection(config.pbgui)}
+            `;
+            
+            // Add collapsible functionality and expand all sections by default
+            document.querySelectorAll('.section-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const section = this.parentElement;
+                    const content = section.querySelector('.collapsible');
+                    const icon = this.querySelector('.expand-icon');
+                    
+                    content.classList.toggle('expanded');
+                    section.classList.toggle('expanded');
+                });
+            });
+            
+            // Expand all sections by default
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('expanded');
+                const collapsible = section.querySelector('.collapsible');
+                if (collapsible) {
+                    collapsible.classList.add('expanded');
+                }
+            });
+        }
+
+        // ===== Section Rendering Functions =====
+
+        function renderAnalysisSection(analysis) {
+            if (!analysis) return '';
+            
+            return `
+                <div class="section">
+                    <div class="section-header">
+                        <span><i class="fas fa-chart-line"></i> Performance Analysis</span>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                    <div class="section-content collapsible">
+                        <div class="metrics-grid">
+                                                        <div class="metric-card">
+                                <div class="metric-label">Total Gain</div>
+                                <div class="metric-value ${analysis.gain !== undefined && analysis.gain > 0 ? 'positive' : analysis.gain !== undefined && analysis.gain < 0 ? 'negative' : ''}">
+                                    ${analysis.gain !== undefined ? formatNumber(analysis.gain, 0) : 'N/A'}
+                                </div>
+                                ${analysis.gain !== undefined ? createProgressBar(Math.abs(analysis.gain), 100000, analysis.gain > 0 ? 'good' : 'bad') : ''}
+                            </div>
+                            
+                            <div class="metric-card">
+                                <div class="metric-label">ADG</div>
+                                <div class="metric-value ${analysis.adg !== undefined && analysis.adg > 0 ? 'positive' : analysis.adg !== undefined && analysis.adg < 0 ? 'negative' : ''}">
+                                    ${analysis.adg !== undefined ? formatPercent(analysis.adg, 3) : 'N/A'}
+                                </div>
+                                ${analysis.adg !== undefined ? createProgressBar(analysis.adg * 1000, 10, analysis.adg > 0.005 ? 'good' : analysis.adg > 0.002 ? 'medium' : 'bad') : ''}
+                            </div>
+                            
+                            <div class="metric-card">
+                                <div class="metric-label">Sharpe Ratio</div>
+                                <div class="metric-value ${analysis.sharpe_ratio !== undefined ? getMetricClass(analysis.sharpe_ratio, {good: 1, medium: 0.5}) : ''}">
+                                    ${analysis.sharpe_ratio !== undefined ? formatNumber(analysis.sharpe_ratio, 3) : 'N/A'}
+                                </div>
+                                ${analysis.sharpe_ratio !== undefined ? createProgressBar(analysis.sharpe_ratio, 2, analysis.sharpe_ratio > 1 ? 'good' : analysis.sharpe_ratio > 0.5 ? 'medium' : 'bad') : ''}
+                            </div>
+                            
+                            <div class="metric-card">
+                                <div class="metric-label">Omega Ratio</div>
+                                <div class="metric-value ${analysis.omega_ratio !== undefined ? getMetricClass(analysis.omega_ratio, {good: 2, medium: 1.5}) : ''}">
+                                    ${analysis.omega_ratio !== undefined ? formatNumber(analysis.omega_ratio, 2) : 'N/A'}
+                                </div>
+                                ${analysis.omega_ratio !== undefined ? createProgressBar(Math.min(analysis.omega_ratio, 10), 10, analysis.omega_ratio > 2 ? 'good' : analysis.omega_ratio > 1.5 ? 'medium' : 'bad') : ''}
+                            </div>
+                            
+                            <div class="metric-card">
+                                <div class="metric-label">Max Drawdown</div>
+                                <div class="metric-value ${analysis.drawdown_worst !== undefined ? 'negative' : ''}">
+                                    ${analysis.drawdown_worst !== undefined ? formatPercent(analysis.drawdown_worst, 1) : 'N/A'}
+                                </div>
+                                ${analysis.drawdown_worst !== undefined ? createProgressBar((1 - analysis.drawdown_worst) * 100, 100, analysis.drawdown_worst < 0.2 ? 'good' : analysis.drawdown_worst < 0.5 ? 'medium' : 'bad') : ''}
+                            </div>
+                            
+                            <div class="metric-card">
+                                <div class="metric-label">Loss/Profit Ratio</div>
+                                <div class="metric-value ${analysis.loss_profit_ratio !== undefined ? getMetricClass(1 - analysis.loss_profit_ratio, {good: 0.4, medium: 0.2}) : ''}">
+                                    ${analysis.loss_profit_ratio !== undefined ? formatNumber(analysis.loss_profit_ratio, 3) : 'N/A'}
+                                </div>
+                                ${analysis.loss_profit_ratio !== undefined ? createProgressBar((1 - analysis.loss_profit_ratio) * 100, 100, analysis.loss_profit_ratio < 0.4 ? 'good' : analysis.loss_profit_ratio < 0.6 ? 'medium' : 'bad') : ''}
+                            </div>
+                            
+                            ${analysis.calmar_ratio !== undefined ? `
+                            <div class="metric-card">
+                                <div class="metric-label">Calmar Ratio</div>
+                                <div class="metric-value ${getMetricClass(analysis.calmar_ratio, {good: 0.02, medium: 0.01})}">
+                                    ${formatNumber(analysis.calmar_ratio, 4)}
+                                </div>
+                                ${createProgressBar(analysis.calmar_ratio * 1000, 50, analysis.calmar_ratio > 0.02 ? 'good' : analysis.calmar_ratio > 0.01 ? 'medium' : 'bad')}
+                            </div>
+                            ` : ''}
+                            
+                            ${analysis.sortino_ratio !== undefined ? `
+                            <div class="metric-card">
+                                <div class="metric-label">Sortino Ratio</div>
+                                <div class="metric-value ${getMetricClass(analysis.sortino_ratio, {good: 0.15, medium: 0.1})}">
+                                    ${formatNumber(analysis.sortino_ratio, 3)}
+                                </div>
+                                ${createProgressBar(analysis.sortino_ratio, 0.3, analysis.sortino_ratio > 0.15 ? 'good' : analysis.sortino_ratio > 0.1 ? 'medium' : 'bad')}
+                            </div>
+                            ` : ''}
+                            
+                            ${analysis.sterling_ratio !== undefined ? `
+                            <div class="metric-card">
+                                <div class="metric-label">Sterling Ratio</div>
+                                <div class="metric-value ${getMetricClass(analysis.sterling_ratio, {good: 0.05, medium: 0.02})}">
+                                    ${formatNumber(analysis.sterling_ratio, 4)}
+                                </div>
+                                ${createProgressBar(analysis.sterling_ratio * 1000, 100, analysis.sterling_ratio > 0.05 ? 'good' : analysis.sterling_ratio > 0.02 ? 'medium' : 'bad')}
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${analysis.adg_w || analysis.sharpe_ratio_w || analysis.omega_ratio_w ? `
+                        <h4>Weighted Metrics</h4>
+                        <div class="metrics-grid">
+                            ${analysis.adg_w ? `
+                            <div class="metric-card">
+                                <div class="metric-label">ADG (Weighted)</div>
+                                <div class="metric-value ${analysis.adg_w > 0 ? 'positive' : 'negative'}">
+                                    ${formatPercent(analysis.adg_w, 3)}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            ${analysis.sharpe_ratio_w ? `
+                            <div class="metric-card">
+                                <div class="metric-label">Sharpe (Weighted)</div>
+                                <div class="metric-value ${getMetricClass(analysis.sharpe_ratio_w || 0, {good: 1, medium: 0.5})}">
+                                    ${formatNumber(analysis.sharpe_ratio_w, 3)}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            ${analysis.omega_ratio_w ? `
+                            <div class="metric-card">
+                                <div class="metric-label">Omega (Weighted)</div>
+                                <div class="metric-value ${getMetricClass(analysis.omega_ratio_w || 0, {good: 2, medium: 1.5})}">
+                                    ${formatNumber(analysis.omega_ratio_w, 2)}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            ${analysis.calmar_ratio_w ? `
+                            <div class="metric-card">
+                                <div class="metric-label">Calmar (Weighted)</div>
+                                <div class="metric-value">
+                                    ${formatNumber(analysis.calmar_ratio_w, 3)}
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        ` : ''}
+                        
+                        ${analysis.position_held_hours_mean ? `
+                        <h4>Position Statistics</h4>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Avg Hold Time</div>
+                                <div class="info-value">${formatNumber(analysis.position_held_hours_mean, 1)}h</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Max Hold Time</div>
+                                <div class="info-value">${formatNumber(analysis.position_held_hours_max, 1)}h</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Median Hold Time</div>
+                                <div class="info-value">${formatNumber(analysis.position_held_hours_median, 1)}h</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Positions/Day</div>
+                                <div class="info-value">${formatNumber(analysis.positions_held_per_day, 1)}</div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBacktestSection(backtest) {
+            if (!backtest) return '';
+            
+            return `
+                <div class="section">
+                    <div class="section-header">
+                        <span><i class="fas fa-calendar-alt"></i> Backtest Configuration</span>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                    <div class="section-content collapsible">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Start Date</div>
+                                <div class="info-value">${backtest.start_date}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">End Date</div>
+                                <div class="info-value">${backtest.end_date}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Starting Balance</div>
+                                <div class="info-value">${formatNumber(backtest.starting_balance)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Exchanges</div>
+                                <div class="info-value">${backtest.exchanges ? backtest.exchanges.join(', ') : 'N/A'}</div>
+                            </div>
+                            ${backtest.combine_ohlcvs !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">Combine OHLCVS</div>
+                                <div class="info-value">${backtest.combine_ohlcvs ? 'Yes' : 'No'}</div>
+                            </div>
+                            ` : ''}
+                            ${backtest.compress_cache !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">Compress Cache</div>
+                                <div class="info-value">${backtest.compress_cache ? 'Yes' : 'No'}</div>
+                            </div>
+                            ` : ''}
+                            ${backtest.gap_tolerance_ohlcvs_minutes !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">Gap Tolerance</div>
+                                <div class="info-value">${backtest.gap_tolerance_ohlcvs_minutes}m</div>
+                            </div>
+                            ` : ''}
+                            ${backtest.base_dir ? `
+                            <div class="info-item">
+                                <div class="info-label">Base Directory</div>
+                                <div class="info-value">${backtest.base_dir}</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${renderSymbolsSection(backtest.symbols || backtest.coins)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSymbolsSection(symbols) {
+            if (!symbols) return '';
+            
+            let html = '<h4>Trading Symbols</h4>';
+            
+            // Handle both formats: array and object
+            if (Array.isArray(symbols)) {
+                // Simple array format: ["BTCUSDT", "ETHUSDT"]
+                html += `
+                    <div style="margin-bottom: 16px;">
+                        <h5 style="margin-bottom: 8px; color: #00d4ff; text-transform: uppercase;">Symbols (${symbols.length})</h5>
+                        <div class="coins-list">
+                            ${symbols.filter(coin => coin).map(coin => `<span class="coin-tag">${coin}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Object format: {"binance": ["BTCUSDT"], "bybit": ["ETHUSDT"]}
+                Object.entries(symbols).forEach(([exchange, coins]) => {
+                    if (Array.isArray(coins) && coins.length > 0) {
+                        html += `
+                            <div style="margin-bottom: 16px;">
+                                <h5 style="margin-bottom: 8px; color: #00d4ff; text-transform: uppercase;">${exchange} (${coins.length})</h5>
+                                <div class="coins-list">
+                                    ${coins.filter(coin => coin).map(coin => `<span class="coin-tag">${coin}</span>`).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+            
+            return html;
+        }
+
+        function renderBotSection(bot) {
+            if (!bot) return '';
+            
+            return `
+                <div class="section">
+                    <div class="section-header">
+                        <span><i class="fas fa-robot"></i> Bot Configuration</span>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                    <div class="section-content collapsible">
+                        <div class="side-by-side">
+                            ${renderSideConfig(bot.long, 'Long Position Settings', 'success')}
+                            ${renderSideConfig(bot.short, 'Short Position Settings', 'danger')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSideConfig(config, title, type) {
+            if (!config) return '';
+            
+            const color = type === 'success' ? '#00ff88' : '#ff4757';
+            
+            return `
+                <div>
+                    <h4 style="color: ${color}; border-bottom: 1px solid ${color};">
+                        <i class="fas fa-${type === 'success' ? 'arrow-up' : 'arrow-down'}"></i> ${title}
+                    </h4>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Positions</div>
+                            <div class="info-value">${config.n_positions || 0}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Wallet Exposure</div>
+                            <div class="info-value">${formatNumber(config.total_wallet_exposure_limit || 0, 2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Initial Qty %</div>
+                            <div class="info-value">${formatPercent(config.entry_initial_qty_pct || 0, 2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Grid Spacing %</div>
+                            <div class="info-value">${formatPercent(config.entry_grid_spacing_pct || 0, 2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Grid Double Down</div>
+                            <div class="info-value">${formatNumber(config.entry_grid_double_down_factor || 0, 3)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Grid Spacing Weight</div>
+                            <div class="info-value">${formatNumber(config.entry_grid_spacing_weight || 0, 2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Entry Initial EMA Dist</div>
+                            <div class="info-value">${formatPercent(config.entry_initial_ema_dist || 0, 3)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Close Min Markup</div>
+                            <div class="info-value">${formatPercent(config.close_grid_min_markup || 0, 2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Close Markup Range</div>
+                            <div class="info-value">${formatPercent(config.close_grid_markup_range || 0, 2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Close Qty %</div>
+                            <div class="info-value">${formatPercent(config.close_grid_qty_pct || 0, 2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">EMA Span 0</div>
+                            <div class="info-value">${formatNumber(config.ema_span_0 || 0, 0)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">EMA Span 1</div>
+                            <div class="info-value">${formatNumber(config.ema_span_1 || 0, 0)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Unstuck Threshold</div>
+                            <div class="info-value">${formatNumber(config.unstuck_threshold || 0, 2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Unstuck Close %</div>
+                            <div class="info-value">${formatPercent(config.unstuck_close_pct || 0, 2)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Unstuck EMA Dist</div>
+                            <div class="info-value">${formatPercent(config.unstuck_ema_dist || 0, 3)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Unstuck Loss Allowance</div>
+                            <div class="info-value">${formatPercent(config.unstuck_loss_allowance_pct || 0, 2)}</div>
+                        </div>
+                        ${config.close_trailing_grid_ratio !== undefined ? `
+                        <div class="info-item">
+                            <div class="info-label">Close Trailing Grid Ratio</div>
+                            <div class="info-value">${formatNumber(config.close_trailing_grid_ratio, 3)}</div>
+                        </div>
+                        ` : ''}
+                        ${config.close_trailing_qty_pct !== undefined ? `
+                        <div class="info-item">
+                            <div class="info-label">Close Trailing Qty %</div>
+                            <div class="info-value">${formatPercent(config.close_trailing_qty_pct, 2)}</div>
+                        </div>
+                        ` : ''}
+                        ${config.close_trailing_retracement_pct !== undefined ? `
+                        <div class="info-item">
+                            <div class="info-label">Close Trailing Retracement</div>
+                            <div class="info-value">${formatPercent(config.close_trailing_retracement_pct, 3)}</div>
+                        </div>
+                        ` : ''}
+                        ${config.close_trailing_threshold_pct !== undefined ? `
+                        <div class="info-item">
+                            <div class="info-label">Close Trailing Threshold</div>
+                            <div class="info-value">${formatPercent(config.close_trailing_threshold_pct, 3)}</div>
+                        </div>
+                        ` : ''}
+                        ${config.entry_trailing_grid_ratio !== undefined ? `
+                        <div class="info-item">
+                            <div class="info-label">Entry Trailing Grid Ratio</div>
+                            <div class="info-value">${formatNumber(config.entry_trailing_grid_ratio, 3)}</div>
+                        </div>
+                        ` : ''}
+                        ${config.entry_trailing_retracement_pct !== undefined ? `
+                        <div class="info-item">
+                            <div class="info-label">Entry Trailing Retracement</div>
+                            <div class="info-value">${formatPercent(config.entry_trailing_retracement_pct, 3)}</div>
+                        </div>
+                        ` : ''}
+                        ${config.entry_trailing_threshold_pct !== undefined ? `
+                        <div class="info-item">
+                            <div class="info-label">Entry Trailing Threshold</div>
+                            <div class="info-value">${formatPercent(config.entry_trailing_threshold_pct, 3)}</div>
+                        </div>
+                        ` : ''}
+                        ${config.filter_relative_volume_clip_pct !== undefined ? `
+                        <div class="info-item">
+                            <div class="info-label">Filter Volume Clip %</div>
+                            <div class="info-value">${formatPercent(config.filter_relative_volume_clip_pct, 2)}</div>
+                        </div>
+                        ` : ''}
+                        ${config.filter_rolling_window !== undefined ? `
+                        <div class="info-item">
+                            <div class="info-label">Filter Rolling Window</div>
+                            <div class="info-value">${formatNumber(config.filter_rolling_window, 0)}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLiveSection(live) {
+            if (!live) return '';
+            
+            return `
+                <div class="section">
+                    <div class="section-header">
+                        <span><i class="fas fa-wifi"></i> Live Trading Settings</span>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                    <div class="section-content collapsible">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">User</div>
+                                <div class="info-value">${live.user || 'N/A'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Leverage</div>
+                                <div class="info-value">${live.leverage || 'N/A'}x</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Auto GS</div>
+                                <div class="info-value">${live.auto_gs ? 'Yes' : 'No'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Exec Delay</div>
+                                <div class="info-value">${live.execution_delay_seconds || 0}s</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Min Coin Age</div>
+                                <div class="info-value">${live.minimum_coin_age_days || 0}d</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Max Restarts</div>
+                                <div class="info-value">${live.max_n_restarts_per_day || 0}/day</div>
+                            </div>
+                            ${live.market_orders_allowed !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">Market Orders</div>
+                                <div class="info-value">${live.market_orders_allowed ? 'Yes' : 'No'}</div>
+                            </div>
+                            ` : ''}
+                            ${live.filter_by_min_effective_cost !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">Filter by Min Cost</div>
+                                <div class="info-value">${live.filter_by_min_effective_cost ? 'Yes' : 'No'}</div>
+                            </div>
+                            ` : ''}
+                            ${live.price_distance_threshold !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">Price Distance Threshold</div>
+                                <div class="info-value">${formatNumber(live.price_distance_threshold, 3)}</div>
+                            </div>
+                            ` : ''}
+                            ${live.time_in_force ? `
+                            <div class="info-item">
+                                <div class="info-label">Time in Force</div>
+                                <div class="info-value">${live.time_in_force}</div>
+                            </div>
+                            ` : ''}
+                            ${live.max_n_cancellations_per_batch !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">Max Cancellations/Batch</div>
+                                <div class="info-value">${live.max_n_cancellations_per_batch}</div>
+                            </div>
+                            ` : ''}
+                            ${live.max_n_creations_per_batch !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">Max Creations/Batch</div>
+                                <div class="info-value">${live.max_n_creations_per_batch}</div>
+                            </div>
+                            ` : ''}
+                            ${live.ohlcvs_1m_rolling_window_days !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">OHLCVS Rolling Window</div>
+                                <div class="info-value">${live.ohlcvs_1m_rolling_window_days}d</div>
+                            </div>
+                            ` : ''}
+                            ${live.ohlcvs_1m_update_after_minutes !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">OHLCVS Update After</div>
+                                <div class="info-value">${live.ohlcvs_1m_update_after_minutes}m</div>
+                            </div>
+                            ` : ''}
+                            ${live.pnls_max_lookback_days !== undefined ? `
+                            <div class="info-item">
+                                <div class="info-label">PnL Lookback</div>
+                                <div class="info-value">${live.pnls_max_lookback_days}d</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${live.approved_coins ? `
+                        <h4>Approved Coins</h4>
+                        ${Array.isArray(live.approved_coins) ? `
+                        <div style="margin-bottom: 16px;">
+                            <h5 style="color: #00d4ff;">All Approved (${live.approved_coins.length})</h5>
+                            <div class="coins-list">
+                                ${live.approved_coins.map(coin => `<span class="coin-tag">${coin}</span>`).join('')}
+                            </div>
+                        </div>
+                        ` : `
+                        <div class="side-by-side">
+                            <div>
+                                <h5 style="color: #00ff88;">Long (${live.approved_coins.long ? live.approved_coins.long.length : 0})</h5>
+                                <div class="coins-list">
+                                    ${live.approved_coins.long ? live.approved_coins.long.map(coin => `<span class="coin-tag">${coin}</span>`).join('') : ''}
+                                </div>
+                            </div>
+                            <div>
+                                <h5 style="color: #ff4757;">Short (${live.approved_coins.short ? live.approved_coins.short.length : 0})</h5>
+                                <div class="coins-list">
+                                    ${live.approved_coins.short ? live.approved_coins.short.map(coin => `<span class="coin-tag">${coin}</span>`).join('') : ''}
+                                </div>
+                            </div>
+                        </div>
+                        `}
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOptimizeSection(optimize) {
+            if (!optimize) return '';
+            
+            return `
+                <div class="section">
+                    <div class="section-header">
+                        <span><i class="fas fa-sliders-h"></i> Optimization Settings</span>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                    <div class="section-content collapsible">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Iterations</div>
+                                <div class="info-value">${formatNumber(optimize.iters || 0, 0)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Population Size</div>
+                                <div class="info-value">${optimize.population_size || 0}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">CPUs</div>
+                                <div class="info-value">${optimize.n_cpus || 0}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Crossover Probability</div>
+                                <div class="info-value">${formatPercent(optimize.crossover_probability || 0)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Mutation Probability</div>
+                                <div class="info-value">${formatPercent(optimize.mutation_probability || 0)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Scoring Method</div>
+                                <div class="info-value">${optimize.scoring ? optimize.scoring.join(', ') : 'N/A'}</div>
+                            </div>
+                        </div>
+                        
+                        ${optimize.limits ? `
+                        <h4>Optimization Limits</h4>
+                        <div class="info-grid">
+                            ${Object.entries(optimize.limits).map(([key, value]) => `
+                            <div class="info-item">
+                                <div class="info-label">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                                <div class="info-value">${typeof value === 'number' ? formatNumber(value, 3) : value}</div>
+                            </div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                        
+                        ${optimize.bounds ? `
+                        <h4>Parameter Bounds</h4>
+                        <div class="info-grid">
+                            ${Object.entries(optimize.bounds).slice(0, 12).map(([key, value]) => `
+                            <div class="info-item">
+                                <div class="info-label">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                                <div class="info-value">${Array.isArray(value) ? `[${formatNumber(value[0], 3)} - ${formatNumber(value[1], 3)}]` : value}</div>
+                            </div>
+                            `).join('')}
+                        </div>
+                        ${Object.keys(optimize.bounds).length > 12 ? `
+                        <p style="color: #888888; font-size: 0.9rem; margin-top: 8px;">
+                            <i class="fas fa-info-circle"></i> Showing first 12 of ${Object.keys(optimize.bounds).length} parameter bounds
+                        </p>
+                        ` : ''}
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPbguiSection(pbgui) {
+            if (!pbgui) return '';
+            
+            return `
+                <div class="section">
+                    <div class="section-header">
+                        <span><i class="fas fa-cog"></i> PBGUI Settings</span>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                    <div class="section-content collapsible">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Status</div>
+                                <div class="info-value">${pbgui.enabled_on || 'N/A'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Market Cap</div>
+                                <div class="info-value">${pbgui.market_cap || 0}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Vol/MCap</div>
+                                <div class="info-value">${pbgui.vol_mcap || 0}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Only CPT</div>
+                                <div class="info-value">${pbgui.only_cpt ? 'Yes' : 'No'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Version</div>
+                                <div class="info-value">${pbgui.version || 0}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Dynamic Ignore</div>
+                                <div class="info-value">${pbgui.dynamic_ignore ? 'Yes' : 'No'}</div>
+                            </div>
+                        </div>
+                        
+                        ${pbgui.note ? `
+                        <h4>Notes</h4>
+                        <div style="background: #1a1a1a; padding: 12px; border-radius: 6px; border: 1px solid #222222; color: #888888;">
+                            ${pbgui.note}
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
